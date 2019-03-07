@@ -32,8 +32,6 @@ class TestApiProject(TestApiBase):
         "server_ids": u"1,2",
         "target_releases": u"/tmp/walle/library",
         "target_root": u"/tmp/walle/root",
-        "target_user": u"work",
-        "target_port": u"22",
         "task_vars": u"debug=1;\\napp=auotapp.py",
         "user_id": 'to be init_vars',
     }
@@ -68,8 +66,6 @@ class TestApiProject(TestApiBase):
         "server_ids": u"1,2",
         "target_releases": u"/tmp/walle/library",
         "target_root": u"/tmp/walle/root",
-        "target_user": u"work",
-        "target_port": u"22",
         "task_vars": u"debug=1;\\napp=auotapp.py",
         "user_id": 'to be init_vars',
     }
@@ -91,8 +87,6 @@ class TestApiProject(TestApiBase):
         "server_ids": u"1,2",
         "target_releases": u"/tmp/walden/library",
         "target_root": u"/tmp/walden/root",
-        "target_user": u"work",
-        "target_port": u"22",
         "task_vars": u"debug=1;\\napp=auotapp.py; project=walden",
         "user_id": 'to be init_vars',
     }
@@ -114,8 +108,6 @@ class TestApiProject(TestApiBase):
         "server_ids": u"1,2",
         "target_releases": u"/tmp/walle/library",
         "target_root": u"/tmp/walle/root",
-        "target_user": u"work",
-        "target_port": u"22",
         "task_vars": u"debug=1;\\napp=auotapp.py",
         "user_id": 'to be init_vars',
     }
@@ -162,7 +154,7 @@ class TestApiProject(TestApiBase):
         response = {
             'count': 2,
         }
-        resp = client.get('%s/?%s' % (self.uri_prefix, urllib.urlencode(query)))
+        resp = client.get('%s/?%s' % (self.uri_prefix, urlencode(query)))
         response_success(resp)
         resp_dict = resp_json(resp)
 
@@ -179,7 +171,7 @@ class TestApiProject(TestApiBase):
         response = {
             'count': 1,
         }
-        resp = client.get('%s/?%s' % (self.uri_prefix, urllib.urlencode(query)))
+        resp = client.get('%s/?%s' % (self.uri_prefix, urlencode(query)))
         response_success(resp)
         resp_dict = resp_json(resp)
 

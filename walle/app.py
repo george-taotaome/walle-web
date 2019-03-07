@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """The app module, containing the app factory function."""
+import gevent.monkey
+gevent.monkey.patch_all()
+
 import logging
 import sys
-
 import os
 from flask import Flask, render_template, current_app
 from flask_restful import Api
@@ -21,9 +23,8 @@ from walle.api import server as ServerAPI
 from walle.api import space as SpaceAPI
 from walle.api import task as TaskAPI
 from walle.api import user as UserAPI
-from walle.api.api import ApiResource
 from walle.config.settings_prod import ProdConfig
-from walle.model.user import UserModel
+from walle.model.user import UserModel, AnonymousUser
 from walle.service.code import Code
 from walle.service.error import WalleError
 from walle.service.extensions import bcrypt, csrf_protect, db, migrate
@@ -79,6 +80,7 @@ def register_extensions(app):
     db.init_app(app)
     csrf_protect.init_app(app)
     login_manager.session_protection = 'strong'
+    login_manager.anonymous_user = AnonymousUser
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -185,7 +187,7 @@ def register_socketio(app):
         return app
     socketio.init_app(app, async_mode='gevent')
     socketio.on_namespace(WalleSocketIO(namespace='/walle'))
-    socketio.run(app, debug=True, host=app.config.get('HOST'), port=app.config.get('PORT'))
+    socketio.run(app, debug=app.config.get('DEBUG'), host=app.config.get('HOST'), port=app.config.get('PORT'))
     return app
 
 

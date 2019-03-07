@@ -9,10 +9,9 @@
 from datetime import datetime
 
 from sqlalchemy import String, Integer, DateTime
+from walle import model
 from walle.model.database import db, Model
 from walle.service.extensions import permission
-from walle.service.rbac.role import *
-from walle import model
 
 
 # 环境级别
@@ -22,7 +21,7 @@ class EnvironmentModel(Model):
     __table_args__ = {"useexisting": True}
     status_open = 1
     status_close = 2
-    current_time = datetime.now()
+    current_time = datetime.now
 
     # 表的结构:
     id = db.Column(Integer, primary_key=True, autoincrement=True)
@@ -44,10 +43,10 @@ class EnvironmentModel(Model):
         if kw:
             query = query.filter(EnvironmentModel.name.like('%' + kw + '%'))
         if space_id:
-            query = query.filter(EnvironmentModel.space_id==space_id)
+            query = query.filter(EnvironmentModel.space_id == space_id)
 
         SpaceModel = model.space.SpaceModel
-        query = query.join(SpaceModel, SpaceModel.id==EnvironmentModel.space_id)
+        query = query.join(SpaceModel, SpaceModel.id == EnvironmentModel.space_id)
         query = query.add_columns(SpaceModel.name)
         count = query.count()
         data = query.order_by(EnvironmentModel.id.desc()).offset(int(size) * int(page)).limit(size).all()
@@ -69,20 +68,16 @@ class EnvironmentModel(Model):
         data = self.query.filter(EnvironmentModel.status.notin_([self.status_remove])).filter_by(id=self.id).first()
         return data.to_json() if data else []
 
-    def add(self, env_name, space_id):
-        # todo permission_ids need to be formated and checked
-        env = EnvironmentModel(name=env_name, status=self.status_open, space_id=space_id)
+    def add(self, *args, **kwargs):
+        data = dict(*args)
+        env = EnvironmentModel(**data)
 
         db.session.add(env)
         db.session.commit()
 
-        if env.id:
-            self.id = env.id
-
-        return env.id
+        return env.to_json()
 
     def update(self, env_name, status, env_id=None):
-        # todo permission_ids need to be formated and checked
         role = EnvironmentModel.query.filter_by(id=self.id).first()
         role.name = env_name
         role.status = status

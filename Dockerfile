@@ -1,12 +1,15 @@
 FROM python:2.7
 
-WORKDIR /usr/app/
+MAINTAINER from Alenx<alenx.hai@live.com>
 
-COPY ./requirements/prod.txt .
-RUN pip install futures
+RUN mkdir /opt/walle-web && mkdir -p /data/walle
 
-RUN pip install -r prod.txt -i https://mirrors.aliyun.com/pypi/simple
+ADD ./requirements/prod.txt /usr/app/
 
-COPY . .
+RUN pip install -r /usr/app/prod.txt -i https://mirrors.aliyun.com/pypi/simple
 
-CMD python waller.py
+VOLUME /root/.ssh/
+
+EXPOSE 5000
+
+CMD ["/bin/bash"]

@@ -9,6 +9,7 @@
 """
 
 import json
+import os, shutil
 
 from flask import request, abort
 from walle.api.api import SecurityResource
@@ -91,7 +92,7 @@ class ProjectAPI(SecurityResource):
             abort(404)
 
     def create(self):
-        form = ProjectForm(request.form, csrf_enabled=False)
+        form = ProjectForm(request.form, csrf=False)
         if form.validate_on_submit():
             # add project
             project = ProjectModel()
@@ -115,15 +116,22 @@ class ProjectAPI(SecurityResource):
         super(ProjectAPI, self).put()
 
         if action and action == 'members':
-            return self.members(project_id, members=json.loads(request.data))
+            return self.members(project_id, members=json.loads(request.data.decode('utf-8')))
 
-        form = ProjectForm(request.form, csrf_enabled=False)
+        form = ProjectForm(request.form, csrf=False)
         form.set_id(project_id)
         if form.validate_on_submit():
             server = ProjectModel().get_by_id(project_id)
+            repo_url_origin = server.repo_url
             data = form.form2dict()
             # a new type to update a model
             ret = server.update(data)
+            # maybe sth changed by git
+            if repo_url_origin != data['repo_url']:
+                dir_codebase_project = current_app.config.get('CODE_BASE') + str(project_id)
+                if os.path.exists(dir_codebase_project):
+                    shutil.rmtree(dir_codebase_project)
+
             return self.render_json(data=server.item())
         else:
             return self.render_error(code=Code.form_error, message=form.errors)
@@ -150,8 +158,6 @@ class ProjectAPI(SecurityResource):
         :param members:
         :return:
         """
-        # TODO login for group id
-
         group_model = MemberModel(project_id=project_id)
         ret = group_model.update_project(project_id=project_id, members=members)
 

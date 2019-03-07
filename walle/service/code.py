@@ -41,6 +41,9 @@ class Code():
     #: 表单错误
     form_error = 2001
 
+    #: 不能生成回滚上线单，可能是第一上线，或目标机器上版本库里已失去该版本备份
+    rollback_error = 2002
+
     #: ----------------------- 3xxx shell 相关错误 -----------------
     #: 3xxx shell相关错误
     #: 不知道怎么归类的错误
@@ -65,6 +68,11 @@ class Code():
     #: 任务部署失败，已终止。请修复错误后，重新部署。
     deploy_fail = 5001
 
+    #: ----------------------- 6xxx 程序中防御性编程相关错误 -----------------
+    #: 6xxx 程序中防御性编程相关错误
+    #: 未知的代码传参，请反馈错误日志予作者修正。
+    sys_params_err = 6001
+
     code_msg = {
         unlogin: '未登录',
         error_pwd: '账号密码错误',
@@ -75,6 +83,7 @@ class Code():
 
         params_error: '参数错误',
         form_error: '表单错误',
+        rollback_error: '不能生成回滚上线单，可能是第一上线，或目标机器上版本库里已失去该版本备份',
 
         shell_run_fail: '命令运行错误，请联系管理员',
         shell_dir_not_exists: '路径不存在，请联系管理员',
@@ -84,4 +93,6 @@ class Code():
         shell_git_pull_fail: 'git pull 失败，请联系管理员',
 
         deploy_fail: '任务部署失败，已终止。请修复错误后，重新部署。',
+
+        sys_params_err: '未知的代码传参，请反馈错误日志予作者修正'
     }

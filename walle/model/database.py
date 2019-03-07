@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """Database module, including the SQLAlchemy database object and DB-related utilities."""
+
+# flake8: noqa  # flake8 has real problems linting this file on Python 2
+
 from pprint import pformat
 
 from sqlalchemy import desc, or_
@@ -70,8 +73,8 @@ def parse_operator(cls, filter_name_dict):
             return value
 
     binary_expression_list = []
-    for field, op_dict in filter_name_dict.items():
-        for op, op_val in op_dict.items():
+    for field, op_dict in list(filter_name_dict.items()):
+        for op, op_val in list(op_dict.items()):
             op_val = _change_type(cls, field, op_val)
             if op in OPERATOR_FUNC_DICT:
                 binary_expression_list.append(
@@ -99,7 +102,7 @@ class CRUDMixin(object):
 
     def update(self, commit=True, **kwargs):
         """Update specific fields of a record."""
-        for attr, value in kwargs.items():
+        for attr, value in list(kwargs.items()):
             setattr(self, attr, value)
         return commit and self.save() or self
 

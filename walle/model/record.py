@@ -16,7 +16,13 @@ from walle.model.database import db, Model
 class RecordModel(Model):
     # 表的名字:
     __tablename__ = 'records'
-    current_time = datetime.now()
+    current_time = datetime.now
+    #
+    stage_end = 'end'
+    #
+    status_success = 0
+    #
+    status_fail = 1
 
     # 表的结构:
     id = db.Column(Integer, primary_key=True, autoincrement=True)
@@ -47,9 +53,10 @@ class RecordModel(Model):
         return [p.to_json() for p in data]
 
     @classmethod
-    def logs(cls, host, command, status, stage, sequence, success, error, *args, **kwargs):
+    def logs(cls, host, user, command, status, stage, sequence, success, error, *args, **kwargs):
         return {
             'host': host,
+            'user': user,
             'cmd': command,
             'status': status,
             'stage': stage,

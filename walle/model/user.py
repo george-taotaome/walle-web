@@ -14,6 +14,12 @@ from walle.service.extensions import permission
 from walle.service.rbac.role import *
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask import current_app
+from flask_login import AnonymousUserMixin
+
+class AnonymousUser(AnonymousUserMixin):
+    @property
+    def role(self):
+        return None
 
 class UserModel(UserMixin, SurrogatePK, Model):
     # 表的名字:
@@ -21,7 +27,7 @@ class UserModel(UserMixin, SurrogatePK, Model):
     status_active = 1
     status_blocked = 2
 
-    current_time = datetime.now()
+    current_time = datetime.now
     password_hash = 'sadfsfkk'
     # 表的结构:
     id = db.Column(Integer, primary_key=True, autoincrement=True)
@@ -62,9 +68,6 @@ class UserModel(UserMixin, SurrogatePK, Model):
         return data.to_json() if data else []
 
     def update(self, *args, **kwargs):
-        # todo permission_ids need to be formated and checked
-        # a new type to update a model
-
         update_data = dict(*args)
         return super(UserModel, self).update(**update_data)
 
@@ -74,7 +77,6 @@ class UserModel(UserMixin, SurrogatePK, Model):
         current_app.logger.info(user)
 
     def update_name_pwd(self, username, password=None):
-        # todo permission_ids need to be formated and checked
         user = self.query.filter_by(id=self.id).first()
         if username:
             user.username = username
@@ -167,6 +169,7 @@ class UserModel(UserMixin, SurrogatePK, Model):
 
     @classmethod
     def fresh_session(cls):
+        session['project_master'] = []
         # 0.超管
         if current_user.role == SUPER:
             return True
@@ -177,7 +180,7 @@ class UserModel(UserMixin, SurrogatePK, Model):
         if not spaces and current_user.role != SUPER:
             raise WalleError(Code.space_empty)
 
-        default_space = spaces.keys()[0]
+        default_space = list(spaces.keys())[0]
 
         # 2.第一次登录无空间
         if not current_user.last_space:
@@ -187,7 +190,7 @@ class UserModel(UserMixin, SurrogatePK, Model):
             session['space_info'] = spaces[session['space_id']]
 
         # 3.空间权限有修改（上次登录的空格没有权限了）
-        if current_user.last_space not in spaces.keys():
+        if current_user.last_space not in list(spaces.keys()):
             current_user.last_space = default_space
 
 
@@ -197,12 +200,12 @@ class UserModel(UserMixin, SurrogatePK, Model):
 
         session['space_id'] = current_user.last_space
         session['space_info'] = spaces[current_user.last_space]
-        session['space_list'] = spaces.values()
+        session['space_list'] = list(spaces.values())
 
     @classmethod
     def avatar_url(cls, avatar):
         avatar = avatar if avatar else 'default.jpg'
-        return '/' + current_app.config['AVATAR_PATH'] + avatar
+        return current_app.config['AVATAR_PATH'] + avatar
 
     @classmethod
     def fetch_by_uid(cls, uids=None):
@@ -243,8 +246,6 @@ class UserModel(UserMixin, SurrogatePK, Model):
             'is_email_verified': self.is_email_verified,
             'email': self.email,
             'avatar': self.avatar_url(self.avatar),
-            # TODO 当前登录用户的空间
-            # 'role_id': self.role_id,
             'status': self.status_mapping[self.status],
             'last_space': self.last_space,
             # 'status': self.status,
@@ -258,8 +259,8 @@ class UserModel(UserMixin, SurrogatePK, Model):
     def enable(self):
         return {
             'enable_view': True,
-            'enable_update': permission.role_upper_developer(),
-            'enable_delete': permission.role_upper_developer(),
+            'enable_update': permission.role_upper_master(),
+            'enable_delete': permission.role_upper_master(),
             'enable_create': False,
             'enable_online': False,
             'enable_audit': False,

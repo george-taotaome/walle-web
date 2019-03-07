@@ -20,12 +20,14 @@ from walle.service.rbac.role import *
 class ProjectModel(SurrogatePK, Model):
     # 表的名字:
     __tablename__ = 'projects'
-    current_time = datetime.now()
+    current_time = datetime.now
     status_close = 0
     status_open = 1
 
     task_audit_true = 1
     task_audit_false = 0
+    repo_mode_branch = 'branch'
+    repo_mode_tag = 'tag'
 
     # 表的结构:
     id = db.Column(Integer, primary_key=True, autoincrement=True)
@@ -37,8 +39,7 @@ class ProjectModel(SurrogatePK, Model):
     master = db.Column(String(100))
     version = db.Column(String(40))
     excludes = db.Column(Text)
-    target_user = db.Column(String(50))
-    target_port = db.Column(String(20))
+    is_include = db.Column(Integer)
     target_root = db.Column(String(200))
     target_releases = db.Column(String(200))
     server_ids = db.Column(Text)
@@ -109,7 +110,6 @@ class ProjectModel(SurrogatePK, Model):
         """
         id = id if id else self.id
         data = self.query.filter(ProjectModel.status.notin_([self.status_remove])).filter_by(id=id).first()
-        current_app.logger.info(data)
         if not data:
             return []
 
@@ -117,25 +117,19 @@ class ProjectModel(SurrogatePK, Model):
 
         ServerModel = model.server.ServerModel
         server_ids = project_info['server_ids']
-        project_info['servers_info'] = ServerModel.fetch_by_id(map(int, server_ids.split(',')))
+        project_info['servers_info'] = ServerModel.fetch_by_id(list(map(int, server_ids.split(','))))
         return project_info
 
     def add(self, *args, **kwargs):
         data = dict(*args)
-        current_app.logger.info(data)
         project = ProjectModel(**data)
 
         db.session.add(project)
         db.session.commit()
 
         return project.to_json()
-        self.id = project.id
-        return self.id
 
     def update(self, *args, **kwargs):
-        # todo permission_ids need to be formated and checked
-        # a new type to update a model
-
         update_data = dict(*args)
         return super(ProjectModel, self).update(**update_data)
 
@@ -163,8 +157,7 @@ class ProjectModel(SurrogatePK, Model):
             'master': UserModel.fetch_by_uid(self.master.split(',')) if self.master else '',
             'version': self.version,
             'excludes': self.excludes,
-            'target_user': self.target_user,
-            'target_port': self.target_port,
+            'is_include': self.is_include,
             'target_root': self.target_root,
             'target_releases': self.target_releases,
             'server_ids': self.server_ids,
